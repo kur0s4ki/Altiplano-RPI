@@ -1,0 +1,16 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "NFC",
+  "main": "nfc.js",
+  "scripts": {},
+  "author": "H2C",
+  "license": "ISC",
+  "dependencies": {
+    "nfc-pcsc": "^0.8.1",
+    "pretty-js-logger": "^0.0.2",
+    "random-words": "^1.1.2",
+    "serialport": "^9.1.0",
+    "ws": "^7.4.6"
+  }
+}
