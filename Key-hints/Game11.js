@@ -52,7 +52,7 @@ Les 3 chiffres trouvés, les 3 candidats doivent appuyer chacun sur leur interru
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let button_indexes = [
   [1, 2, 3, 7],
