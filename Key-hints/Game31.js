@@ -52,11 +52,17 @@ let flag9 = false;
 let barled = 0;
 let led = 0;
 let interpret = false;
+let current_image = "1";
 
-let fouras_sentence = "Au sommet les 3 boulets tu porteras";
+let fouras_sentence = "To be Defined";
 let game_time = 3;
 let cell_number = 31;
 let game_name = "PHARAON";
+
+
+let unshuffled_images = Array.from({ length: 16 }, (_, i) =>
+  (i + 1).toString()
+);
 
 
 arduino.emitter.on("cmdFailedEvent", () => {
@@ -135,6 +141,11 @@ arduino.emitter.on("Reset", () => {
 });
 
 arduino.emitter.on("Start", () => {
+
+  random_images = getShuffledArr(unshuffled_images);
+  current_image = random_images[0];
+  arduino.emitter.emit("post_image_index", parseInt(current_image))
+
   console.log("[Start Recieved]... Resetting Flags.");
   flag1 = false;
   flag2 = false;
@@ -151,15 +162,15 @@ arduino.emitter.on("Start", () => {
 
 function gameWon() {
   if (flag1 && flag2 && flag3 && flag4 && flag5 && flag6 && flag7 && flag8 && flag9) {
-  flag1 = false;
-  flag2 = false;
-  flag3 = false;
-  flag4 = false;
-  flag5 = false;
-  flag6 = false;
-  flag7 = false;
-  flag8 = false;
-  flag9 = false;
+    flag1 = false;
+    flag2 = false;
+    flag3 = false;
+    flag4 = false;
+    flag5 = false;
+    flag6 = false;
+    flag7 = false;
+    flag8 = false;
+    flag9 = false;
     interpret = false;
     barled = 0;
     setTimeout(() => {

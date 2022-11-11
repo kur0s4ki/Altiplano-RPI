@@ -10,13 +10,13 @@ async def hello():
             #sleep(2)
             name = input("\nCommand :  ")
             if(name=="1"):
-                #await websocket.send("badge_in_status")
-                #greeting = await websocket.recv()
-                #print("\n" + greeting)
-                message = {
-                    'cardUID':'xxxxxxxxxxx',
-                }
-                await websocket.send(json.dumps(message))
+                await websocket.send("badge_in_status")
+                greeting = await websocket.recv()
+                print("\n" + greeting)
+                # message = {
+                #     'cardUID':'xxxxxxxxxxx',
+                # }
+                # await websocket.send(json.dumps(message))
 
             elif(name =="info" or name =="is_won" or name == "is_lost" or name =="debug"):
                 await websocket.send(name)

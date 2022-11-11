@@ -56,15 +56,14 @@ arduino.emitter.on("stop_interpret", () => {
 arduino.emitter.on("EventInput", (numEvent, input) => {
   if (interpret == true) {
     console.log(numEvent + "..." + input);
-    if (input==1) {
-      id = setTimeout(() => {
-        arduino.get_input1().then((val) => {
-          console.log("After 3 seconds: " + val.toString());
-          // val = ~val;
-          if (val==1) {
+    if (input == 1) {
+      setTimeout(() => {
+        arduino.get_input1().then((value) => {
+          //value = ~value;
+          console.log("input1 Called , results = ", value);
+          if (input == value) {
             flag1 = true;
-            console.log("HELD FOR 3S");
-          } else console.log("NOT HELD FOR 3S");
+          }
         });
       }, 3000);
     }

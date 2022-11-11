@@ -78,20 +78,12 @@ const getShuffledArr = arr => {
 };
 
 const Binarize = arr => {
-  let base = "00000000";
-  let base1 = "00000000";
-  let result="";
+  let base = "0000000000000000";
   for (let i = 0; i < 3; i++) {
-    if (arr[i] < 9) {
       base = base.replaceAt(base.length - arr[i], "1");
-    } else if (arr[i] == 9) {
-      base1 = base1.replaceAt(7, "1");
-    } else if (arr[i] == 10) {
-      base1 = base1.replaceAt(6, "1");
-    }
-  }
-  return parseInt(result.concat(base1,base),2 );
 };
+return parseInt(base,2 );
+}
 
 // turn on the 3 random chosen button leds 
 const turn_on_button_leds = arr => {
@@ -127,84 +119,33 @@ arduino.emitter.on("cmdFailedEvent", (msg) => {
 });
 
 arduino.emitter.on("EventInput", (numEvent, input) => {
-  console.log("Event received ", numEvent);
-  input = ~input;
-
-  // positions[0] contains the states of the randomly chosen first 8 buttons.
-  // positions[1] contains the states of the 9th and 10th randomly chosen buttons.
+  //input = ~ input;
   if (interpret == true) {
-    // compare the states of the input with randomly chosen 3 buttons.
+    console.log(
+      "Event = ", numEvent, " Input = ", input);
 
-    // if (numEvent == "1" || numEvent == "2" || numEvent == "3" || numEvent == "4" || numEvent == "5" || numEvent == "6" || numEvent == "7" || numEvent == "8") {
-    //   go +=1;
-    //   console.log("go = ",go);
-    //   let v = arduino.get_input2().then((val) => {
-    //     val = ~val;
-    //     console.log("input2 Called , results = ", val);
-    //     if (((input & parseInt(positions[0],2)) == parseInt(positions[0],2)) && ((val & parseInt(positions[1],2)) == parseInt(positions[1],2)) && go >= 2) {
-    //       go = 0;
-    //       // if the right buttons are pressed , augment the sequence by 1.
-    //       sequence += 1;
-    //       console.log("Gets here, sequence = ", sequence);
-    //       // while the sequence hasn't reached 5 , chose the next random 3 buttons.
-    //       if (sequence < 5) {
-    //         // turn off current leds
-    //         turn_off_button_leds();
+    if (input == winning_buttons) {
+      sequence+=1;
+      console.log("Gets here, sequence = ", sequence);
+      if (sequence < 5) {
+        // turn off current leds
+        turn_off_button_leds();
+        console.log("next chunk is ", chunks[sequence]);
+        winning_buttons = Binarize(chunks[sequence]);
+        console.log("After being binarized ", winning_buttons);
+        // turn on next random 3 leds.
+        turn_on_button_leds(chunks[sequence]);
 
-    //         console.log("next chunk is ", chunks[sequence]);
-    //         positions = [];
-    //         positions = Binarize(chunks[sequence]);
-    //         console.log("After being binarized ", positions);
-    //         // turn on next random 3 leds.
-    //         turn_on_button_leds(positions);
+        console.log("WINNING BUTTONS ", chunks[sequence]);
+        console.log("Binarized verison "  , winning_buttons);
+      }
 
-    //         console.log("WINNING BUTTONS ", chunks[sequence]);
-    //         console.log("positions states " +  positions[0]  ,  positions[1]);
-    //       }
-    //     }
-    //   });
-
-      
-    // } else if (numEvent == "9" || numEvent == "10") {
-    //   go +=1;
-    //   console.log("go = ",go);
-    //   let v = arduino.get_input1().then((val) => {
-    //     val = ~val;
-    //     console.log("input1 Called , results = ", val);
-    //     if (((val & parseInt(positions[0],2)) == parseInt(positions[0],2)) && ((input & parseInt(positions[1],2)) == parseInt(positions[1],2)) && go >=2) {
-    //       go = 0;
-    //       // if the right buttons are pressed , augment the sequence by 1.
-    //       sequence += 1;
-    //       console.log("Gets here, sequence = ", sequence);
-    //       // while the sequence hasn't reached 5 , chose the next random 3 buttons.
-    //       if (sequence < 5) {
-    //         // turn off current leds
-    //         turn_off_button_leds();
-
-    //         console.log("next chunk is ", chunks[sequence]);
-    //         positions = [];
-    //         positions = Binarize(chunks[sequence]);
-    //         console.log("After being binarized ", positions);
-    //         // turn on next random 3 leds.
-    //         turn_on_button_leds(positions);
-
-    //         console.log("WINNING BUTTONS ", chunks[sequence]);
-    //         console.log("positions states " +  positions[0]  ,  positions[1]);
-    //       }
-    //     }
-    //   });
-
-    // }
-
-    // if one or more sensors are HIGH , count it as a failed try.
-    //arduino.get_input1().then((val) => {console.log("teeeeeest",val)} );
-    arduino.get_input2().then((val) => {
-      val = ~val;
-      console.log("[LOSS CHECKER] , value = ", val);
-      console.log("states of the 2nd relay card inputs ", val);
-      if (val & 0xFC) tries += 1; // mask 1111 1100 check if one the sensors is ON
+    }else{
+      console.log("[LOSS CHECKER] , input = ", input);
+      if (val & 0xFC00) tries += 1; // mask 1111 1100 0000 0000 check if one the sensors is ON
       console.log(maxTries-tries+" tries left.");
-    });
+    }
+    
   }
 });
 
@@ -219,12 +160,10 @@ arduino.emitter.on("Start", () => {
   chunk4 = shuffled_array.slice(9).concat(shuffled_array.slice(0, 2));
   chunk5 = shuffled_array.slice(2, 5);
   chunks = [chunk1, chunk2, chunk3, chunk4, chunk5];
-  positions = Binarize(chunk1);
+  winning_buttons = Binarize(chunk1);
   turn_off_button_leds();
-  turn_on_button_leds(positions);
-
-  console.log("WINNING BUTTONS ", chunk1);
-  console.log("positions states " +  positions[0]  ,  positions[1]);
+  console.log("chunk1 & positions ", chunk1 , winning_buttons);
+  turn_on_button_leds(chunk1);
 
 } );
 

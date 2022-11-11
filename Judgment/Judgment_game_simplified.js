@@ -27,7 +27,7 @@ let win = false;
 const OUT_ON = "1";
 const OUT_OFF = "0";
 let game_name = "fil chaud"; //Default name
-let cell_number = 1;
+let cell_number = 36;
 let game_time = 2;
 let game_leds = {
   1: "5", // Mapping game 1 indicator
@@ -47,33 +47,33 @@ const Turn_Off_Game_Indicator = (arg) => {
 };
 
 arduino.emitter.on("selected_game", (arg) => {
-  console.log("Selected game received ... : "+arg);
+  console.log("Selected game received ... : " + arg);
   selected_game = arg;
   Turn_On_Game_Indicator(game_leds[selected_game]);
   switch (arg) {
     case 1:
       game_time = 3;
-      cell_number = 1;
+      cell_number = 36;
       game_name = "fil chaud";
     case 2:
       game_time = 3;
-      cell_number = 2;
+      cell_number = 36;
       game_name = "Cyclone";
     case 3:
       game_time = 3;
-      cell_number = 3;
+      cell_number = 36;
       game_name = "Balle sur la planche";
     case 4:
       game_time = 3;
-      cell_number = 4;
+      cell_number = 37;
       game_name = "3 niveaux";
     case 5:
       game_time = 3;
-      cell_number = 5;
+      cell_number = 37;
       game_name = "Volcan";
     case 6:
       game_time = 3;
-      cell_number = 6;
+      cell_number = 37;
       game_name = "Essuie glaces";
   }
 });

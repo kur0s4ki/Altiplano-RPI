@@ -221,7 +221,6 @@ wss.on("connection", function connection(ws) {
     }
 
     if (messageReceived.search("badge_in_status") !== -1 && badge_check) {
-      clearTimeout(setTimeoutID1);
       const messageSent = {
         action: "badge_in",
         cardUID: cardUID,
@@ -274,6 +273,7 @@ wss.on("connection", function connection(ws) {
     }
 
     if (messageReceived.search("open") !== -1 && badge_check) {
+      clearTimeout(setTimeoutID1);
       console.log("\n[ARDUINO CALL] Opening the door.");
       arduino.open_door();
       console.log("\n[ARDUINO CALL] Turn on Red indicator");
@@ -328,7 +328,7 @@ nfc.on("reader", (reader) => {
       } else {
         badge_check = false;
       }
-    } else if (reader.name.includes("PICC 1") && playing == true) {
+    } else if (reader.name.includes("ACS ACR122") && playing == true) {
       if (badge_check == true && finished == true) {
         if (cardUID != "") {
           console.log("\n[BADGING OUT]");

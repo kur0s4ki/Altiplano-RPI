@@ -24,11 +24,13 @@ var events = require("events");
 
 //MAPING OUTPUTS
 const OUTPUT_DOOR = "01";
-const OUTPUT_LED_DOOR_GREEN= "02";
+const OUTPUT_LED_DOOR_GREEN = "02";
 
 const OUTPUT_LED_DOOR_RED = "03";
 
 const OUTPUT_LED_EFFECT = "04";
+
+const OUTPUT_CELL_LIGHTNING = "24";
 
 //OUTPUT state
 const OUT_ON = "1";
@@ -40,7 +42,7 @@ const DURATION_LED_EFFECT = 4000; //4s
 
 
 var SerialPort = require("serialport");
-var arduinoCOMPort_1 ;
+var arduinoCOMPort_1;
 var arduinoSerialPort_1;
 var arduinoCOMPort_2;
 var arduinoSerialPort_2;
@@ -51,42 +53,41 @@ var tempBuffer2 = "";
 var statusCmd1 = "";
 var statusCmd2 = "";
 
-let input1=0;
-let input2=0;
+let input1 = 0;
+let input2 = 0;
 
 //timer timeout output command ID
 var timeoutId;
 //used to manage timeout in case of several commands in very short time
 var nbrOfComdOngoing = 0;
 
-let fAnswerReceived1=false;
-let fAnswerReceived2=false;
+let fAnswerReceived1 = false;
+let fAnswerReceived2 = false;
 
-let timeoutIdTab2=[];
-let timeoutIdTab1=[];
-let comptCmd1=0;
-let comptCmd2=0;
+let timeoutIdTab2 = [];
+let timeoutIdTab1 = [];
+let comptCmd1 = 0;
+let comptCmd2 = 0;
 
 
 //found port coms
 function managePorts() {
   SerialPort.list().then(ports => {
-  ports.map(port => {
-    if ( (port.path.indexOf("COM")>=0)) { //detect only USB port
-      if (arduinoCOMPort_1 == null)
-      {
-        arduinoCOMPort_1 = port.path; //modfied 2-->1
-        console.log("first board" +arduinoCOMPort_1);
+    ports.map(port => {
+      if ((port.path.indexOf("COM") >= 0)) { //detect only USB port
+        if (arduinoCOMPort_1 == null) {
+          arduinoCOMPort_1 = port.path; //modfied 2-->1
+          console.log("first board" + arduinoCOMPort_1);
+        }
+        // else 
+        // {
+        //   arduinoCOMPort_2 = port.path; //modfied 1-->2
+        //   console.log("second board" +arduinoCOMPort_2);
+        //   return;
+        // }
       }
-      // else 
-      // {
-      //   arduinoCOMPort_2 = port.path; //modfied 1-->2
-      //   console.log("second board" +arduinoCOMPort_2);
-      //   return;
-      // }
-    }
-});
-});
+    });
+  });
 }
 
 //list available ports
@@ -114,7 +115,7 @@ let emitter = new events.EventEmitter();
 //     //console.log("cmd2: " + mes + ", "+nbrOfComdOngoing.toString());
 
 //     let intervalId = setInterval(() => {
-     
+
 //       if (fAnswerReceived2)
 //       {
 //       //  console.log("fAnswerReceived" + input1.toString());
@@ -145,32 +146,30 @@ let emitter = new events.EventEmitter();
 
 async function sendCmd1(mes) {
 
-  statusCmd1="";
-  fAnswerReceived1=false;
+  statusCmd1 = "";
+  fAnswerReceived1 = false;
 
-  let promise = new Promise((resolve, reject) =>{ 
+  let promise = new Promise((resolve, reject) => {
     //    setTimeout(() => , 1000)
-    if (arduinoSerialPort_1){
+    if (arduinoSerialPort_1) {
       arduinoSerialPort_1.write(mes);
     }
-      else
-        {
-          emitter.emit("cmdFailedEvent","no serial port 1");
-          return;
-        }
+    else {
+      emitter.emit("cmdFailedEvent", "no serial port 1");
+      return;
+    }
     nbrOfComdOngoing++;
     //console.log("cmd1: " + mes + ", "+nbrOfComdOngoing.toString());
 
     let intervalId = setInterval(() => {
-     
-      if (fAnswerReceived1)
-      {
-      //  console.log("fAnswerReceived" + input1.toString());
+
+      if (fAnswerReceived1) {
+        //  console.log("fAnswerReceived" + input1.toString());
         clearInterval(intervalId);
         comptCmd1--;
-       // console.log("Clear Timeout 1: " + comptCmd1.toString());
+        // console.log("Clear Timeout 1: " + comptCmd1.toString());
         //case of several command sent in the same timeout 
-        clearTimeout(timeoutIdTab1[comptCmd1]); 
+        clearTimeout(timeoutIdTab1[comptCmd1]);
 
         resolve(input1);
       }
@@ -180,7 +179,7 @@ async function sendCmd1(mes) {
       emitter.emit("cmdFailedEvent", "no answer from arduino1");
       reject
     }, 1000);
-    timeoutIdTab1[comptCmd1++]=timeoutId;
+    timeoutIdTab1[comptCmd1++] = timeoutId;
   });
 
 
@@ -192,31 +191,31 @@ async function sendCmd1(mes) {
 
 
 
-function manageInputEvent(mes, input ) {
-  var a = parseInt(Number("0x"+input), 10); //attention 10 ? il faut un mot de 16bits
+function manageInputEvent(mes, input) {
+  var a = parseInt(Number("0x" + input), 10); //attention 10 ? il faut un mot de 16bits
 
-  if (mes=="21") //answer to getinput 1
+  if (mes == "21") //answer to getinput 1
   {
-     input1=a;
-     fAnswerReceived1=true;
-     return;
-  }
-
-/*  if (mes=="22") //answer to getinput 2
-  {
-    input2=a;
-    fAnswerReceived2=true;
+    input1 = a;
+    fAnswerReceived1 = true;
     return;
   }
-*/
 
-  if (mes[0] == "0"){
+  /*  if (mes=="22") //answer to getinput 2
+    {
+      input2=a;
+      fAnswerReceived2=true;
+      return;
+    }
+  */
+
+  if (mes[0] == "0") {
     mes = mes.substring(1);
   }
   //console.log("mes = ", mes , " a= ",a);
   if (mes.length > 0) {
     //console.log("event:" + mes+" dec:"+a.toString());
-    emitter.emit("EventInput", mes,a);
+    emitter.emit("EventInput", mes, a);
   }
 }
 
@@ -244,7 +243,7 @@ function manageSerialPort1() {
           // If statusCmd1 == 1 then send an Succes event else Failed event
           if (statusCmd1 != "1")
             emitter.emit("cmdFailedEvent");
-          fAnswerReceived1=true;
+          fAnswerReceived1 = true;
           //answer received, stop timer
           if (nbrOfComdOngoing > 1) {
             nbrOfComdOngoing--;
@@ -265,27 +264,27 @@ function manageSerialPort1() {
     if (offsetI >= 0) {
       //remove unused data => in case of error or frame not well formatted
       tempBuffer1 = tempBuffer1.substring(offsetI);
-     // console.log("message debug:" + tempBuffer1);
+      // console.log("message debug:" + tempBuffer1);
       //event I01x
       if (tempBuffer1.length > 6) { // new format I21xxyy 
         //case of get input answer
-          if (nbrOfComdOngoing > 1) {
-            nbrOfComdOngoing--;
-          }
-          else {
-            clearTimeout(timeoutId);
-            timeoutId = 0;
-            nbrOfComdOngoing = 0;
-          }
+        if (nbrOfComdOngoing > 1) {
+          nbrOfComdOngoing--;
+        }
+        else {
+          clearTimeout(timeoutId);
+          timeoutId = 0;
+          nbrOfComdOngoing = 0;
+        }
 
         //just to detect answer
-        statusCmd1=tempBuffer1.substring(0, 1);
+        statusCmd1 = tempBuffer1.substring(0, 1);
 
-		
-		        //just to detect answer
-        statusCmd1=tempBuffer1.substring(1, 3);
 
-        manageInputEvent(tempBuffer1.substring(1,3),tempBuffer1.substring(3, 7)); //a verifier
+        //just to detect answer
+        statusCmd1 = tempBuffer1.substring(1, 3);
+
+        manageInputEvent(tempBuffer1.substring(1, 3), tempBuffer1.substring(3, 7)); //a verifier
         tempBuffer1 = tempBuffer1.substring(5);
       }
       else
@@ -367,21 +366,20 @@ function manageSerialPort1() {
 
 setTimeout(() => {
 
-  if (arduinoCOMPort_1)
-  {
+  if (arduinoCOMPort_1) {
     console.log("Init port com 1: " + arduinoCOMPort_1);
     arduinoSerialPort_1 = new SerialPort(arduinoCOMPort_1, {
       baudRate: 9600,
       autoOpen: false,
     });
     arduinoSerialPort_1.open();
-      arduinoSerialPort_1.on("data", function (data) {
+    arduinoSerialPort_1.on("data", function (data) {
       tempBuffer1 += data;
       //console.log("reception1: " + data);
       manageSerialPort1();
     });
   }
- 
+
   // if (arduinoCOMPort_2)
   // {
   //   console.log("init port com 2: " + arduinoCOMPort_2);
@@ -405,7 +403,7 @@ setTimeout(() => {
 
 /////////////////////// Interfaces for game managment /////////////////////////
 
- function open_door() {
+function open_door() {
   //open OUT_OFF
   sendCmd1("O" + OUTPUT_DOOR + OUT_OFF); // modified
   //setTimeout(sendCmd("O"+OUTPUT_DOOR+OUT_OFF),DURATION_DOOR);
@@ -417,35 +415,43 @@ setTimeout(() => {
 
 
 
- function turn_on_green_light_indicator() {
+function turn_on_green_light_indicator() {
   sendCmd1("O" + OUTPUT_LED_DOOR_GREEN + OUT_ON);
-  sendCmd1("O" + OUTPUT_LED_DOOR_RED + OUT_OFF); 
+  sendCmd1("O" + OUTPUT_LED_DOOR_RED + OUT_OFF);
 }
 
- function turn_off_green_light_indicator() {
+function turn_on_cell_lightning() {
+  sendCmd1("O" + OUTPUT_CELL_LIGHTNING + OUT_ON);
+}
+
+function turn_off_cell_lightning() {
+  sendCmd1("O" + OUTPUT_CELL_LIGHTNING + OUT_OFF);
+}
+
+function turn_off_green_light_indicator() {
   //ligth off
   sendCmd1("O" + OUTPUT_LED_DOOR_RED + OUT_ON);
-  sendCmd1("O" + OUTPUT_LED_DOOR_GREEN  + OUT_OFF); 
+  sendCmd1("O" + OUTPUT_LED_DOOR_GREEN + OUT_OFF);
 }
 
 //wait 10s and close the door at start-up
 setTimeout(() => {
-    sendCmd1("O" + OUTPUT_DOOR + OUT_ON);
-    turn_on_green_light_indicator();
+  sendCmd1("O" + OUTPUT_DOOR + OUT_ON);
+  turn_on_green_light_indicator();
 }, 10000);
 
- function green_light_effect(val) {
+function green_light_effect(val) {
   //ligth on
-  if (val){
+  if (val) {
     //console.log("triggered here");
-    sendCmd1("O" + OUTPUT_LED_EFFECT + OUT_ON); 
+    sendCmd1("O" + OUTPUT_LED_EFFECT + OUT_ON);
   }
-    
-  else{
+
+  else {
     sendCmd1("O" + OUTPUT_LED_EFFECT + OUT_OFF);
     //console.log("triggered else");
   }
-    
+
   /*setTimeout(() => {
     sendCmd1("O" + OUTPUT_LED_EFFECT + OUT_OFF);
   }, DURATION_LED_EFFECT);
@@ -454,41 +460,41 @@ setTimeout(() => {
 }
 
 //set output state
-function set_output(num,val) {
-// to be deleted
-//console.log("turning led : ",num , "|| ", val);
-var n=num.toString();
-var v=val.toString();
+function set_output(num, val) {
+  // to be deleted
+  //console.log("turning led : ",num , "|| ", val);
+  var n = num.toString();
+  var v = val.toString();
 
-if (n.length==1)
-  n='0'+n;
+  if (n.length == 1)
+    n = '0' + n;
 
-// if(num<=9)
+  // if(num<=9)
   sendCmd1("O" + n + v);
-// else
-//   sendCmd2("O" + n + v);
+  // else
+  //   sendCmd2("O" + n + v);
 }
 
 
-async function  get_input1() {
+async function get_input1() {
   //get inputs values
-  input1=0;
-  return sendCmd1("I").then((val)=>{return val});
-  
+  input1 = 0;
+  return sendCmd1("I").then((val) => { return val });
+
 }
 
 async function get_input2() {
   //get inputs values
-  input2=0;
-  return 
+  input2 = 0;
+  return
   //sendCmd2("I").then((val)=>{return val});
 
 }
 
 //Power led bar from 0% to 100%
 function set_barled(val) {
-  if (val==0) //0 is end of string, prefere to remove it
-    val=1;
+  if (val == 0) //0 is end of string, prefere to remove it
+    val = 1;
   console.log("BARLED : ", val);
   sendCmd1("L01" + String.fromCharCode(val))
   // if(col == "green"){
@@ -496,8 +502,8 @@ function set_barled(val) {
   // }else if(col=="red"){
   //   sendCmd1("L01R" + String.fromCharCode(val));
   // }
-  
+
 }
 
 
-module.exports = { open_door ,turn_on_green_light_indicator, turn_off_green_light_indicator , green_light_effect, emitter, get_input1,get_input2,set_output, set_barled };
+module.exports = { open_door, turn_on_green_light_indicator, turn_off_green_light_indicator, turn_on_cell_lightning, turn_off_cell_lightning, green_light_effect, emitter, get_input1, get_input2, set_output, set_barled };
