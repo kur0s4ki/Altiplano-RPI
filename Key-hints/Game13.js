@@ -17,7 +17,7 @@
 ///
 
 
-//////////////////////////////////////////////////////  TONNEAUX  ////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////  TONNEAUX  ////////////////////////////////////////////////////////////////////////////
 
 const arduino = require("../arduino.js");
 
@@ -69,6 +69,9 @@ String.prototype.replaceAt = function (index, replacement) {
   return this.substr(0, index) + replacement + this.substr(index + replacement.length);
 }
 
+let outputs = Array.from({ length: 10 }, (_, i) => (i + 1)
+);
+
 const getShuffledArr = arr => {
   if (arr.length === 1) {
     return arr
@@ -87,26 +90,16 @@ return parseInt(base,2 );
 
 // turn on the 3 random chosen button leds 
 const turn_on_button_leds = arr => {
-  for (let i = 0; i < arr[0].length; i++) {
-    if (arr[0][i] == "1") {
-      arduino.set_output((arr[0].length - i+3) , OUT_ON);
-    }
-  }
-  let len = arr[1].length;
-  for (let i = 1; i < 3; i++) {
-      if((arr[1][len - i] ) == "1"){
-        arduino.set_output((i+11) , OUT_ON);
-      }
-  }
-
+  for (var i in arr) {
+    arduino.set_output(arr[i]+4 , OUT_ON);
+}
 };
 
 //turn off all the button leds
-const turn_off_button_leds = () => {
-  for (let i = 3; i < 13; i++) {
-    console.log("turning off leds");
-    arduino.set_output((i + 1) ,  OUT_OFF);
-  }
+const turn_off_button_leds = arr => {
+  for (var i in arr) {
+    arduino.set_output(arr[i]+4 , OUT_OFF);
+}
 };
 
 arduino.emitter.on("interpret", () => {
@@ -114,9 +107,9 @@ arduino.emitter.on("interpret", () => {
   interpret = true;
 });
 
-arduino.emitter.on("cmdFailedEvent", (msg) => {
-  console.log("\nTimeout out command, no answer from arduino");
-});
+// arduino.emitter.on("cmdFailedEvent", (msg) => {
+//   console.log("\nTimeout out command, no answer from arduino");
+// });
 
 arduino.emitter.on("EventInput", (numEvent, input) => {
   //input = ~ input;
@@ -126,31 +119,34 @@ arduino.emitter.on("EventInput", (numEvent, input) => {
 
     if (input == winning_buttons) {
       sequence+=1;
-      console.log("Gets here, sequence = ", sequence);
-      if (sequence < 5) {
+      // console.log("Gets here, sequence = ", sequence);
+      if (sequence < 2) {
         // turn off current leds
-        turn_off_button_leds();
+        console.log("turning off this ,",outputs);
+        turn_off_button_leds(outputs);
         console.log("next chunk is ", chunks[sequence]);
         winning_buttons = Binarize(chunks[sequence]);
         console.log("After being binarized ", winning_buttons);
         // turn on next random 3 leds.
         turn_on_button_leds(chunks[sequence]);
 
-        console.log("WINNING BUTTONS ", chunks[sequence]);
-        console.log("Binarized verison "  , winning_buttons);
+        // console.log("WINNING BUTTONS ", chunks[sequence]);
+        // console.log("Binarized verison "  , winning_buttons);
       }
 
-    }else{
-      console.log("[LOSS CHECKER] , input = ", input);
-      if (val & 0xFC00) tries += 1; // mask 1111 1100 0000 0000 check if one the sensors is ON
+    }
+
+    if (input & 0xFC00){
+      console.log("Loss Checker Triggered.");
+      tries += 1; // mask 1111 1100 0000 0000 check if one the sensors is ON
       console.log(maxTries-tries+" tries left.");
     }
+      
     
   }
 });
 
 arduino.emitter.on("Start", () => {
-  lost = false;
   sequence = 0;
   maxTries = 20;
   shuffled_array = getShuffledArr(unshuffled);
@@ -161,20 +157,34 @@ arduino.emitter.on("Start", () => {
   chunk5 = shuffled_array.slice(2, 5);
   chunks = [chunk1, chunk2, chunk3, chunk4, chunk5];
   winning_buttons = Binarize(chunk1);
-  turn_off_button_leds();
+  turn_off_button_leds(outputs);
   console.log("chunk1 & positions ", chunk1 , winning_buttons);
   turn_on_button_leds(chunk1);
 
 } );
 
+arduino.emitter.on("Reset", () => {
+  console.log("[TIMEOUT RESET] ... Resetting Flags." , outputs);
+  interpret = false;
+  turn_off_button_leds(outputs);
+});
+
 
 function gameWon() {
-  if (sequence >= 5) return true;
+  if (sequence >= 2) {
+    sequence = 0;
+    interpret=false;
+    turn_off_button_leds(outputs);
+    return true;
+  }
 }
 
 function gameLost() {
   if (tries >= maxTries) {
     console.log("lost the game , ", tries , maxTries);
+    sequence = 0;
+    interpret=false;
+    turn_off_button_leds(outputs);
     return true;}
 }
 
