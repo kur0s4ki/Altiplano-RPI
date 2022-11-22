@@ -50,7 +50,7 @@ Les boutons s'illuminent les uns après les autres, les joueurs doivent reprodui
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let interpret = false;
 let led = 0;

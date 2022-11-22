@@ -18,7 +18,7 @@
 
 /////////////////////////////////////////////////////////////////////////// JUNGLE /////////////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 /// input mapping
 /*
@@ -43,7 +43,7 @@ let interpret = false;
 
 let fouras_sentence = "Suspendu dans les airs, la salle tu traverseras";
 let game_time = 3;
-let cell_number = 5;
+let cell_number = 7;
 let game_name = "Jungle";
 
 arduino.emitter.on("cmdFailedEvent", () => {

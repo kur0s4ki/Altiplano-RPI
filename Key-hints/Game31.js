@@ -18,7 +18,7 @@
 
 /////////////////////////////////////////////////////////////////////////// PHARAON /////////////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 /// input mapping
 /*
@@ -145,6 +145,7 @@ arduino.emitter.on("Start", () => {
   random_images = getShuffledArr(unshuffled_images);
   current_image = random_images[0];
   arduino.emitter.emit("post_image_index", parseInt(current_image))
+  arduino.set_image_number(parseInt(current_image));
 
   console.log("[Start Recieved]... Resetting Flags.");
   flag1 = false;

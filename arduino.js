@@ -475,6 +475,20 @@ function set_output(num, val) {
   //   sendCmd2("O" + n + v);
 }
 
+function set_image_number(num) {
+  // to be deleted
+  //console.log("turning led : ",num , "|| ", val);
+  var n = num.toString();
+
+  if (n.length == 1)
+    n = '0' + n;
+
+  // if(num<=9)
+  sendCmd1("O" + n);
+  // else
+  //   sendCmd2("O" + n + v);
+}
+
 
 async function get_input1() {
   //get inputs values
@@ -506,4 +520,4 @@ function set_barled(val) {
 }
 
 
-module.exports = { open_door, turn_on_green_light_indicator, turn_off_green_light_indicator, turn_on_cell_lightning, turn_off_cell_lightning, green_light_effect, emitter, get_input1, get_input2, set_output, set_barled };
+module.exports = { open_door, turn_on_green_light_indicator, turn_off_green_light_indicator, turn_on_cell_lightning, turn_off_cell_lightning, green_light_effect, emitter, get_input1, get_input2, set_output,set_image_number, set_barled };

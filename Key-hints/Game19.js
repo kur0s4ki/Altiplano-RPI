@@ -52,7 +52,7 @@ Si les joueurs valident la séquence dans le temps imparti, ils remportent l’�
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let unshuffled_images = Array.from({ length: 16 }, (_, i) =>
   (i + 1).toString()

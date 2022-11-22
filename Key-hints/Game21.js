@@ -43,7 +43,7 @@ Si les joueurs valident la séquence dans le temps imparti, ils remportent l’�
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let led = 0;
 let barled = 0;

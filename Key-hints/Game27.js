@@ -29,7 +29,7 @@ jouer les équilibristes afin d'essayer de trouver le point d'équilibre de l'as
 et ainsi appuyer sur un bouton au plafond pendant 3 secondes.
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let flag1 = false;
 let id = 0;

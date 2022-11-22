@@ -36,7 +36,7 @@ INPUT1: entrée 2
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 let game_won = false;
 let game_lost = false;
 let interpret = false;

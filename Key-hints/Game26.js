@@ -20,7 +20,7 @@
 
 //////////////////////////////////////////////////////////////////////// RAMES ////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 /// input mapping
 /*
@@ -91,7 +91,7 @@ arduino.emitter.on("Start", () => {
 });
 
 function gameWon() {
-  if (flag1 && flag2) {
+  if (flag1) {
     flag1 = false;
     barled = 0;
     setTimeout(() => {

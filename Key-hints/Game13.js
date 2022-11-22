@@ -19,18 +19,19 @@
 
 /////////////////////////////////////////////////////////////////////////  TONNEAUX  ////////////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let fouras_sentence = 'To be defined';
 let game_time = 3;
-let cell_number = 1;
+let cell_number = 13;
 
 let go = 0;
 let tries = 0;
-let maxTries = 20;
+let maxTries = 20; // numbeer of tries
 let interpret = false;
 let game_name = "Tonneaux";
-let sequence = 0;
+let sequence = 0; // required number of sequences to win [PS: MAX 5]
+let Maxsequence = 5;
 let unshuffled = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let shuffled_array = [];
 let chunk1, chunk2, chunk3, chunk4, chunk5 = [];
@@ -120,7 +121,7 @@ arduino.emitter.on("EventInput", (numEvent, input) => {
     if (input == winning_buttons) {
       sequence+=1;
       // console.log("Gets here, sequence = ", sequence);
-      if (sequence < 2) {
+      if (sequence < Maxsequence) {
         // turn off current leds
         console.log("turning off this ,",outputs);
         turn_off_button_leds(outputs);
@@ -171,7 +172,7 @@ arduino.emitter.on("Reset", () => {
 
 
 function gameWon() {
-  if (sequence >= 2) {
+  if (sequence >= Maxsequence) {
     sequence = 0;
     interpret=false;
     turn_off_button_leds(outputs);

@@ -82,7 +82,7 @@ Brazil    : Button 11
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let unshuffled_images = Array.from({ length: 16 }, (_, i) =>
   (i + 1).toString()
@@ -95,7 +95,7 @@ let current_image = "1";
 
 let fouras_sentence = "La bonne destination tu trouveras";
 let game_time = 3;
-let cell_number = 11;
+let cell_number = 34;
 let game_name = "7 familles";
 
 // let image_to_countries = new Map([

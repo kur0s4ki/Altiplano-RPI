@@ -35,7 +35,7 @@ le jeu est perdu.
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let flag1 = false;
 let flag2 = false;

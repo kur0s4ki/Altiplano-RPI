@@ -31,7 +31,7 @@ Lorsque 10 balles sont entrées dans le cercle, l’épreuve est remportée.
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let score = 0;
 let maxScore = 10;

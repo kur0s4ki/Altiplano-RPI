@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////// RADIATIONS ////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 // mapping btn1 = INPUT1, btn2 = INPUT2, detector = INPUT3
 let flag1 = false; // btn1

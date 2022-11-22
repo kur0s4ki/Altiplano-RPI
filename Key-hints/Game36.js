@@ -42,7 +42,7 @@ les cibles de la séquence sont touchées l'épreuve est remportée.
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let unshuffled_sequence = Array.from({length: 5}, (_, i) => (i + 1));
 let interpret = false;

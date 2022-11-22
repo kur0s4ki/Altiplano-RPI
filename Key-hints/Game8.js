@@ -18,7 +18,7 @@
 
 /////////////////////////////////////////////////////////////////////////// BOITE A BILLE /////////////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 /// input mapping
 /*
@@ -66,7 +66,7 @@ let fouras_sentence = "D'un endroit à l'autre la bille tu achemineras";
 
 let game_time = 3;
 let cell_number = 8;
-let game_name = "boite a bille";
+let game_name = "Boite a bille";
 
 
 

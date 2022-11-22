@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////// BOWLING ////////////////////////////////////////////////////////////////////
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 // mapping IR1 = INPUT1, IR2 = INPUT2, IR3 = INPUT3,IR4 = INPUT4
 let flag1 = false; // IR1

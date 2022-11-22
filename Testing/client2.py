@@ -11,10 +11,19 @@ async def hello():
             print("\n" + message)
             #sleep(2)
             name = input("\nCommand :  ")
-            if(name=="pause"):
-                await websocket.send(name)
+            if(name=="1"):
+                msg = {
+                    'action':'boyardPicked',
+                    'data':'50'
+                }
+                await websocket.send(json.dumps(msg))
                 greeting = await websocket.recv()
                 print("\n" + greeting)
+            if(name=="2"):
+                msg = {
+                    'action':'ChronoEnd',
+                }
+                await websocket.send(json.dumps(msg))
             # else:
             #     await websocket.send(name)
             #     greeting = await websocket.recv()

@@ -33,7 +33,7 @@ const wss = new WebSocket.Server({
 });
 
 const wss_pc_games = new WebSocket.Server({
-  port: 8008,
+  port: 8005,
 });
 
 const nfc = new NFC();
@@ -43,43 +43,43 @@ const get_word = () => {
   return randomWords();
 };
 
-// const turn_on_random_button = () => {
-//   selected_button = Math.floor(Math.random() * 4) + 1;
-//   console.log("Turning on button " + selected_button);
-//   arduino.set_output(LEDS[selected_button-1], OUT_ON);
-//   return selected_button;
-// };
+const turn_on_random_button = () => {
+  selected_button = Math.floor(Math.random() * 4) + 1;
+  console.log("Turning on button " + selected_button);
+  arduino.set_output(LEDS[selected_button-1], OUT_ON);
+  return selected_button;
+};
 
-// const turn_off_random_button = (rand) => {
-//   console.log("Turning off button " + rand);
-//   arduino.set_output(LEDS[rand-1], OUT_OFF);
-// };
+const turn_off_random_button = (rand) => {
+  console.log("Turning off button " + rand);
+  arduino.set_output(LEDS[rand-1], OUT_OFF);
+};
 
 
-// arduino.emitter.on("EventInput", (numEvent , val) => {
-//   if (interpret) {
-//     console.log("clicked recieved at : ", numEvent);
+arduino.emitter.on("EventInput", (numEvent , val) => {
+  if (interpret) {
+    console.log("clicked recieved at : ", numEvent);
 
-//     // let v = arduino.get_input1().then((value) => {
-//     //       //value = ~value;
-//     //       console.log("input1 Called , results = ", value);
-//     // })
+    // let v = arduino.get_input1().then((value) => {
+    //       //value = ~value;
+    //       console.log("input1 Called , results = ", value);
+    // })
 
-//     if (numEvent == selected_button) {
-//       console.log("Right Button clicked ...");
-//       turn_off_random_button(selected_button);
-//       event.emit("start_animation");
-//       interpret = false;
-//     }
-//   }
-// });
+    if (numEvent == selected_button) {
+      console.log("Right Button clicked ...");
+      turn_off_random_button(selected_button);
+      event.emit("Empty");
+      interpret = false;
+    }
+  }
+});
 
-// event.on("start", () => {
-//   console.log("second Sequence started ...");
-//   event.emit("start_animation");
-//   coins_falling_audio_signal = true;
-//   //finished = false;
-// });
+event.on("start", () => {
+  console.log("second Sequence started ...");
+  event.emit("start_animation");
+  coins_falling_audio_signal = true;
+  //finished = false;
+});
 
 event.on("exit", () => {
   // Reset everything
@@ -233,33 +233,60 @@ wss.on("connection", function connection(ws) {
   });
 });
 
-// wss_pc_games.on("connection", function connection(ws) {
-//   event.on("start_animation", () => {
-//     console.log("[Animation Starting ...]");
+wss_pc_games.on("connection", function connection(ws) {
 
-//     const messageSent = {
-//       action: "Start",
-//     };
-//     ws.send(JSON.stringify(messageSent));
+  console.log("Partie Unity connectée !");
+
+  event.on("start_animation", () => {
+    console.log("[Animation Starting ...]");
+
+    const messageSent = {
+      action: "Start",
+      data: 40
+    };
+    ws.send(JSON.stringify(messageSent));
 
 
-//     contestants_running_audio_signal = false;
-//     coins_falling_audio_signal = true;
-//   });
+    contestants_running_audio_signal = false;
+    coins_falling_audio_signal = true;
+  });
 
-//   ws.on("message", (messageReceived) => {
-//     if (messageReceived.search("pause") !== -1) {
-//       const messageSent = {
-//         action: "pause_animation_recieved",
-//       };
-//       ws.send(JSON.stringify(messageSent));
-//       event.emit("Turn_on");
-//       interpret = true;
-//       contestants_running_audio_signal = true;
-//       coins_falling_audio_signal = false;
-//     }
-//   });
-// });
+  event.on("Empty", () => {
+    console.log("[Animation re-Starting after collect...]");
+
+    const messageSent = {
+      action: "Empty",
+    };
+    ws.send(JSON.stringify(messageSent));
+
+
+    contestants_running_audio_signal = false;
+    coins_falling_audio_signal = true;
+  });
+
+  ws.on("message", (messageReceived) => {
+
+    console.log(messageReceived);
+
+    if (messageReceived.search("boyardPicked") !== -1) {
+      console.log(messageReceived);
+      const messageSent = {
+        action: "pause_animation_recieved",
+      };
+      ws.send(JSON.stringify(messageSent));
+      event.emit("Turn_on");
+      interpret = true;
+      contestants_running_audio_signal = true;
+      coins_falling_audio_signal = false;
+    }
+
+    if (messageReceived.search("ChronoEnd") !== -1) {
+      console.log("ChronoEnd recieved");
+
+    }
+
+  });
+});
 
 nfc.on("reader", (reader) => {
   // console.log(reader.name + " reader attached, waiting for cards ...");

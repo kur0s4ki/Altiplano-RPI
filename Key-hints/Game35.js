@@ -43,7 +43,7 @@ Les joueurs devront reconstituer leus voyages. Ils devront ensuite valider leur 
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let interpret = false;
 let fouras_sentence = "Le bon trajet tu effectueras";

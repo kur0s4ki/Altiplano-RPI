@@ -29,7 +29,7 @@ Un bouton se trouve à la fin du parcours. Pour l'atteindre, le joueur va devoir
 */
 
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let led = 0;
 let barled = 0;

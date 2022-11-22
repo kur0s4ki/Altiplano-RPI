@@ -47,7 +47,7 @@ Les joueurs doivent appuyer sur les formes de couleur correspondantes.
 
 */
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let unshuffled_images = Array.from({ length: 16 }, (_, i) =>
   (i + 1).toString()

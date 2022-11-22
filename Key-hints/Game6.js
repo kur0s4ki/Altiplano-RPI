@@ -30,14 +30,14 @@ et en cas de chute il doit recommencer depuis le dÃ©but. Cette Ã©preuve dema
 */
 
 
-const arduino = require("../arduino.js");
+const arduino = require("./arduino.js");
 
 let flag1 = false;
 let interpret = false;
 
 let fouras_sentence = "test";
 let game_time = 3;
-let cell_number = 1;
+let cell_number = 6;
 
 arduino.emitter.on("cmdFailedEvent", () => {
   //console.log("\nTimeout out command, no answer from arduino");
