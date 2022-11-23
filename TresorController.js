@@ -1,5 +1,4 @@
 const WebSocket = require("ws");
-
 const { NFC } = require("nfc-pcsc");
 let events = require("events");
 let randomWords = require("random-words");
@@ -9,21 +8,32 @@ let badge_check = false;
 let cardUID = "";
 let finished = true;
 let playing = false;
+let share_boyards = false;
+let boyards_picked = 0;
 let reset_time_badge = 30000;
 let badge_game_check = false;
 let setIntervalID;
 let setTimeoutID1;
-let selected_button = "1";
-let guess = "test";
+let selected_button = "4";
+let guess = "dummy";
 let interpret = false;
 let coins_falling_audio_signal = false;
 let contestants_running_audio_signal = false;
 
-const OUTPUT_LED1 = "05";
-const OUTPUT_LED2 = "06";
-const OUTPUT_LED3 = "07";
-const OUTPUT_LED4 = "08";
-let LEDS = [OUTPUT_LED1,OUTPUT_LED2,OUTPUT_LED3,OUTPUT_LED4];
+let keys = [
+  ['C', 'B', 'G', 'F', 'J', 'U'],
+  ['Q', 'T', 'E', 'L', 'M', 'I'],
+  ['I', 'A', 'H', 'O', 'P', 'S'],
+  ['F', 'V', 'S', 'N', 'D', 'R'],
+  ['X', 'C', 'R', 'U', 'E', 'L'],
+  ['E', 'N', 'E', 'A', 'P', 'T'],
+];
+
+let keyboard = [0, 0, 0, 0, 0, 0];
+let ValEvent1;
+let ValEvent2;
+let ValEvent3;
+let word = '';
 
 const OUT_ON = "1";
 const OUT_OFF = "0";
@@ -44,33 +54,58 @@ const get_word = () => {
 };
 
 const turn_on_random_button = () => {
-  selected_button = Math.floor(Math.random() * 4) + 1;
+  selected_button = Math.floor(Math.random() * 4) + 4;
   console.log("Turning on button " + selected_button);
-  arduino.set_output(LEDS[selected_button-1], OUT_ON);
+  arduino.set_output(selected_button, OUT_ON);
   return selected_button;
 };
 
 const turn_off_random_button = (rand) => {
   console.log("Turning off button " + rand);
-  arduino.set_output(LEDS[rand-1], OUT_OFF);
+  arduino.set_output(rand, OUT_OFF);
 };
 
 
-arduino.emitter.on("EventInput", (numEvent , val) => {
+arduino.emitter.on("EventInput", (numEvent, input) => {
   if (interpret) {
     console.log("clicked recieved at : ", numEvent);
-
-    // let v = arduino.get_input1().then((value) => {
-    //       //value = ~value;
-    //       console.log("input1 Called , results = ", value);
-    // })
-
     if (numEvent == selected_button) {
       console.log("Right Button clicked ...");
       turn_off_random_button(selected_button);
       event.emit("Empty");
       interpret = false;
     }
+
+    if (numEvent == '1')
+      ValEvent1 = input;
+    if (numEvent == '2')
+      ValEvent2 = input;
+    if (numEvent == '3') {
+      ValEvent3 = input;
+      keyboard[0] = ValEvent1 / 256;
+      keyboard[1] = ValEvent1 % 256;
+      keyboard[2] = ValEvent2 / 256;
+      keyboard[3] = ValEvent2 % 256;
+      keyboard[4] = ValEvent3 / 256;
+      keyboard[5] = ValEvent3 % 256;
+
+      word = '';
+      //construction du mot 
+      for (i = 0; i < 6; i++) {
+        rot = 1;
+        for (j = 0; j < 6; j++) {
+          if ((rot & keyboard[i]) > 0) {
+            mot = mot + keys[i][j]
+          }
+          rot = rot * 2;
+        }
+      }
+      //le mot contient la liste des characteres
+      console.log("final guess format is : ",word);
+      guess = word;
+
+    }
+
   }
 });
 
@@ -103,7 +138,7 @@ wss.on("connection", function connection(ws) {
       };
       ws.send(JSON.stringify(messageSent));
 
-      win_status = JSON.parse(messageReceived).data;
+      win_status = JSON.parse(JSON.parse(messageReceived)).data;
       if (win_status == "win") {
         event.emit("start");
       } else {
@@ -118,6 +153,18 @@ wss.on("connection", function connection(ws) {
         cardUID: cardUID,
       };
       ws.send(JSON.stringify(messageSent));
+    }
+
+    if (messageReceived.search("boyards_picked_status") !== -1) {
+      if(share_boyards){
+        share_boyards=false;
+        const messageSent = {
+          action: "boyards_picked",
+          data: boyards_picked,
+        };
+        ws.send(JSON.stringify(messageSent));
+      }
+      
     }
 
     if (messageReceived.search("game_badge_status") !== -1 && badge_check) {
@@ -165,6 +212,8 @@ wss.on("connection", function connection(ws) {
         badge_check = false;
         badge_game_check = false;
         interpret = false;
+        boyards_picked=0;
+        share_boyards=false;
         coins_falling_audio_signal = false;
         contestants_running_audio_signal = false;
         turn_off_random_button(selected_button);
@@ -174,18 +223,24 @@ wss.on("connection", function connection(ws) {
     }
 
     if (
-      messageReceived.search("go") !== -1 &&
+      messageReceived.search("winning_word_status") !== -1 &&
       badge_check &&
       badge_game_check
     ) {
-      guess = get_word();
       const messageSent = {
         action: "guess",
         data: guess,
       };
       ws.send(JSON.stringify(messageSent));
-      //add
-      //arduino.set_barled(50);
+    }
+
+
+    if (
+      messageReceived.search("go") !== -1 &&
+      badge_check &&
+      badge_game_check
+    ) {
+      arduino.set_output(24, OUT_ON);
     }
     if (
       messageReceived.search("start_animation_simulation") !== -1 &&
@@ -268,12 +323,14 @@ wss_pc_games.on("connection", function connection(ws) {
 
     console.log(messageReceived);
 
-    if (messageReceived.search("boyardPicked") !== -1) {
+    if (messageReceived.search("BoyardPicked") !== -1) {
+      let data = parseInt(messageReceived.toString().split(":")[1]);
+      boyards_picked+=data;
+    }
+
+
+    if (messageReceived.search("PeriodEnd") !== -1) {
       console.log(messageReceived);
-      const messageSent = {
-        action: "pause_animation_recieved",
-      };
-      ws.send(JSON.stringify(messageSent));
       event.emit("Turn_on");
       interpret = true;
       contestants_running_audio_signal = true;
@@ -282,7 +339,7 @@ wss_pc_games.on("connection", function connection(ws) {
 
     if (messageReceived.search("ChronoEnd") !== -1) {
       console.log("ChronoEnd recieved");
-
+      share_boyards = true;
     }
 
   });
