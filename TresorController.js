@@ -18,7 +18,7 @@ let selected_button = "4";
 let guess = "dummy";
 let interpret = false;
 let coins_falling_audio_signal = false;
-let contestants_running_audio_signal = false;
+let tick_sound=false;
 
 let keys = [
   ['C', 'B', 'G', 'F', 'J', 'U'],
@@ -54,7 +54,8 @@ const get_word = () => {
 };
 
 const turn_on_random_button = () => {
-  selected_button = Math.floor(Math.random() * 4) + 4;
+  console.log('testing');
+  selected_button = Math.floor(Math.random() * 4) + 9;
   console.log("Turning on button " + selected_button);
   arduino.set_output(selected_button, OUT_ON);
   return selected_button;
@@ -69,44 +70,47 @@ const turn_off_random_button = (rand) => {
 arduino.emitter.on("EventInput", (numEvent, input) => {
   if (interpret) {
     console.log("clicked recieved at : ", numEvent);
-    if (numEvent == selected_button) {
+    if (numEvent == selected_button - 2) {
       console.log("Right Button clicked ...");
       turn_off_random_button(selected_button);
       event.emit("Empty");
       interpret = false;
     }
+  }
+  if (numEvent == '1')
+    ValEvent1 = input;
+    console.log("Input 1 : " + input);
+  if (numEvent == '2')
+    ValEvent2 = input;
+    console.log("Input 2 : " + input);
+  if (numEvent == '3') {
+    ValEvent3 = input;
+    console.log("Input 3 : " + input);
+    keyboard[0] = ValEvent1 / 256;
+    keyboard[1] = ValEvent1 % 256;
+    keyboard[2] = ValEvent2 / 256;
+    keyboard[3] = ValEvent2 % 256;
+    keyboard[4] = ValEvent3 / 256;
+    keyboard[5] = ValEvent3 % 256;
 
-    if (numEvent == '1')
-      ValEvent1 = input;
-    if (numEvent == '2')
-      ValEvent2 = input;
-    if (numEvent == '3') {
-      ValEvent3 = input;
-      keyboard[0] = ValEvent1 / 256;
-      keyboard[1] = ValEvent1 % 256;
-      keyboard[2] = ValEvent2 / 256;
-      keyboard[3] = ValEvent2 % 256;
-      keyboard[4] = ValEvent3 / 256;
-      keyboard[5] = ValEvent3 % 256;
-
-      word = '';
-      //construction du mot 
-      for (i = 0; i < 6; i++) {
-        rot = 1;
-        for (j = 0; j < 6; j++) {
-          if ((rot & keyboard[i]) > 0) {
-            mot = mot + keys[i][j]
-          }
-          rot = rot * 2;
+    word = '';
+    //construction du mot 
+    for (i = 0; i < 6; i++) {
+      rot = 1;
+      for (j = 0; j < 6; j++) {
+        if ((rot & keyboard[i]) > 0) {
+          word = word + keys[i][j]
         }
+        rot = rot * 2;
       }
-      //le mot contient la liste des characteres
-      console.log("final guess format is : ",word);
-      guess = word;
-
     }
+    //le mot contient la liste des characteres
+    console.log("final guess format is : ", word);
+    guess = word;
 
   }
+
+
 });
 
 event.on("start", () => {
@@ -147,7 +151,6 @@ wss.on("connection", function connection(ws) {
     }
 
     if (messageReceived.search("badge_in_status") !== -1 && badge_check) {
-      clearTimeout(setTimeoutID1);
       const messageSent = {
         action: "badge_in",
         cardUID: cardUID,
@@ -156,15 +159,15 @@ wss.on("connection", function connection(ws) {
     }
 
     if (messageReceived.search("boyards_picked_status") !== -1) {
-      if(share_boyards){
-        share_boyards=false;
+      if (share_boyards) {
+        share_boyards = false;
         const messageSent = {
           action: "boyards_picked",
           data: boyards_picked,
         };
         ws.send(JSON.stringify(messageSent));
       }
-      
+
     }
 
     if (messageReceived.search("game_badge_status") !== -1 && badge_check) {
@@ -184,15 +187,16 @@ wss.on("connection", function connection(ws) {
         selected_button: selected_button,
         interpret: interpret,
         coins_falling_audio_signal: coins_falling_audio_signal,
-        contestants_running_audio_signal: contestants_running_audio_signal,
       };
       ws.send(JSON.stringify(messageSent));
     }
 
     if (messageReceived.search("open") !== -1 && badge_check) {
+      clearTimeout(setTimeoutID1);
       console.log("\n[ARDUINO CALL] Opening the door.");
       arduino.open_door();
       arduino.turn_off_green_light_indicator();
+      coins_falling_audio_signal = false;
     }
 
     if (messageReceived.search("error") !== -1) {
@@ -212,10 +216,10 @@ wss.on("connection", function connection(ws) {
         badge_check = false;
         badge_game_check = false;
         interpret = false;
-        boyards_picked=0;
-        share_boyards=false;
+        boyards_picked = 0;
+        share_boyards = false;
         coins_falling_audio_signal = false;
-        contestants_running_audio_signal = false;
+        tick_sound=false;
         turn_off_random_button(selected_button);
         arduino.turn_on_green_light_indicator();
         arduino.turn_off_green_light_indicator;
@@ -227,11 +231,15 @@ wss.on("connection", function connection(ws) {
       badge_check &&
       badge_game_check
     ) {
-      const messageSent = {
-        action: "guess",
-        data: guess,
-      };
-      ws.send(JSON.stringify(messageSent));
+      if (guess != 'dummy') {
+        let finalGuess = guess;
+        guess = 'dummy';
+        const messageSent = {
+          action: "guess",
+          data: finalGuess,
+        };
+        ws.send(JSON.stringify(messageSent));
+      }
     }
 
 
@@ -270,7 +278,6 @@ wss.on("connection", function connection(ws) {
       badge_game_check = false;
       interpret = false;
       coins_falling_audio_signal = false;
-      contestants_running_audio_signal = false;
     }
 
     if (
@@ -278,12 +285,25 @@ wss.on("connection", function connection(ws) {
       badge_check &&
       badge_game_check
     ) {
-      const messageSent = {
-        action: "audio_status",
-        coins_falling_audio_signal: coins_falling_audio_signal,
-        contestants_running_audio_signal: contestants_running_audio_signal,
-      };
-      ws.send(JSON.stringify(messageSent));
+      if (coins_falling_audio_signal ){
+        let audio_signal1 = coins_falling_audio_signal;
+
+        coins_falling_audio_signal = false;
+
+        const messageSent = {
+          action: "audio_data",
+          coins_falling: audio_signal1,
+        };
+        ws.send(JSON.stringify(messageSent))
+
+      }
+      if(tick_sound){
+        tick_sound=false;
+        const messageSent = {
+          action: "tick",
+        };
+        ws.send(JSON.stringify(messageSent))
+      }
     }
   });
 });
@@ -301,8 +321,6 @@ wss_pc_games.on("connection", function connection(ws) {
     };
     ws.send(JSON.stringify(messageSent));
 
-
-    contestants_running_audio_signal = false;
     coins_falling_audio_signal = true;
   });
 
@@ -315,7 +333,6 @@ wss_pc_games.on("connection", function connection(ws) {
     ws.send(JSON.stringify(messageSent));
 
 
-    contestants_running_audio_signal = false;
     coins_falling_audio_signal = true;
   });
 
@@ -325,21 +342,28 @@ wss_pc_games.on("connection", function connection(ws) {
 
     if (messageReceived.search("BoyardPicked") !== -1) {
       let data = parseInt(messageReceived.toString().split(":")[1]);
-      boyards_picked+=data;
+      boyards_picked += data;
+      tick_sound=true;
     }
 
 
     if (messageReceived.search("PeriodEnd") !== -1) {
+      //To be reviewed
       console.log(messageReceived);
       event.emit("Turn_on");
       interpret = true;
-      contestants_running_audio_signal = true;
       coins_falling_audio_signal = false;
     }
 
     if (messageReceived.search("ChronoEnd") !== -1) {
       console.log("ChronoEnd recieved");
       share_boyards = true;
+
+      const messageSent = {
+        action: "Finished",
+      };
+      ws.send(JSON.stringify(messageSent));
+      coins_falling_audio_signal = false;
     }
 
   });
